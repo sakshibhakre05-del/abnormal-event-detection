@@ -60,7 +60,8 @@ init_db()
 
 # -------------------- AUTH --------------------
 def valid_username(name):
-    return re.fullmatch(r"[A-Za-z]+", name)
+    # Allow uppercase, lowercase, and spaces
+    return re.fullmatch(r"[A-Za-z ]+", name)
 
 @app.route('/')
 def home():
