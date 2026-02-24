@@ -1,215 +1,419 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI CCTV Surveillance</title>
-
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-
     <style>
-        body{
-            background:#0f172a;
-            color:white;
-            text-align:center;
-            font-family:Arial;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        h2{color:#22c55e}
-
-        #video{
-            width:720px;
-            height:520px;
-            border:5px solid #22c55e;
-            border-radius:10px;
-            margin-top:15px;
-            background:black;
+        /* ---------------- HEADER ---------------- */
+        .header {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            margin-bottom: 30px;
         }
 
-        button{
-            padding:12px 25px;
-            margin:10px;
-            font-size:18px;
-            border:none;
-            border-radius:8px;
-            cursor:pointer;
+        .header h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #38bdf8;
+            font-weight: 600;
         }
 
-        .start{background:#22c55e;color:black}
-        .stop{background:#ef4444;color:white}
-        .upload{background:#3b82f6;color:white}
-        .alertbtn{background:#f59e0b;color:black}
-
-        #status{
-            font-size:30px;
-            margin-top:15px;
-            font-weight:bold;
+        .header a.logout {
+            color: #ef4444;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 6px;
+            background: rgba(239, 68, 68, 0.1);
+            transition: all 0.3s ease;
         }
 
-        #uploadMsg{
-            font-size:22px;
-            color:yellow;
+        .header a.logout:hover {
+            background: rgba(239, 68, 68, 0.2);
         }
 
-        #alertPanel{
-            background:#020617;
-            padding:20px;
-            border-radius:12px;
-            border:3px solid red;
-            width:90%;
-            margin:auto;
-            margin-top:20px;
-            display:none;
+        /* ---------------- MAIN CONTAINER ---------------- */
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 900px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            margin-bottom: 30px;
         }
 
-        .alertImg{
-            width:230px;
-            margin:10px;
-            border:4px solid red;
-            border-radius:10px;
+        /* ---------------- CAMERA SECTION ---------------- */
+        .controls {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            margin: 5px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .start {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.5);
+        }
+
+        .start:hover {
+            background: rgba(34, 197, 94, 0.3);
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+        }
+
+        .stop {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.5);
+        }
+
+        .stop:hover {
+            background: rgba(239, 68, 68, 0.3);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        }
+
+        #video {
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 4/3;
+            background: #000;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+
+        #status {
+            font-size: 24px;
+            margin-top: 20px;
+            font-weight: 600;
+            color: #94a3b8;
+            /* Default Camera OFF color */
+            transition: color 0.3s ease;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 30px 0;
+        }
+
+        /* ---------------- UPLOAD VIDEO SECTION ---------------- */
+        .upload-section h3 {
+            margin-top: 0;
+            color: #f1f5f9;
+        }
+
+        input[type="file"] {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px dashed rgba(255, 255, 255, 0.3);
+            color: #cbd5e1;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+
+        .upload {
+            background: rgba(56, 189, 248, 0.2);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.5);
+        }
+
+        .upload:hover {
+            background: rgba(56, 189, 248, 0.3);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+        }
+
+        #uploadMsg {
+            font-size: 16px;
+            color: #fbbf24;
+            margin-top: 15px;
+            min-height: 20px;
+        }
+
+        /* ---------------- ALERT SECTION ---------------- */
+        .alertbtn {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .alertbtn:hover {
+            background: rgba(245, 158, 11, 0.3);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+        }
+
+        #alertPanel {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            margin-top: 20px;
+            display: none;
+            box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.1);
+        }
+
+        .alertImg {
+            width: calc(33.333% - 20px);
+            min-width: 200px;
+            margin: 10px;
+            border: 2px solid #ef4444;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .alertImg:hover {
+            transform: scale(1.05);
+        }
+
+        #alertsContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
         }
     </style>
 </head>
 
 <body>
 
-<h2>Welcome {{username}}</h2>
+    <div class="header">
+        <h2>Welcome, {{username}}</h2>
+        <a href="/logout" class="logout">Logout</a>
+    </div>
 
-<button class="start" onclick="startCamera()">Start Camera</button>
-<button class="stop" onclick="stopCamera()">Stop Camera</button>
+    <div class="container">
+        <!-- Live Camera Feed -->
+        <div class="controls">
+            <button class="start" onclick="startCamera()">▶ Start Live Camera</button>
+            <button class="stop" onclick="stopCamera()">⏹ Stop Camera</button>
+        </div>
 
-<br>
-<img id="video">
+        <img id="video">
+        <h1 id="status">Camera OFF</h1>
 
-<h1 id="status">Camera OFF</h1>
+        <audio id="alarm" src="/static/alarm.mp3"></audio>
 
-<audio id="alarm" src="/static/alarm.mp3"></audio>
+        <hr>
 
-<hr>
+        <!-- Video Upload Section -->
+        <div class="upload-section">
+            <h3>Analyze Pre-Recorded Video</h3>
+            <input type="file" id="videoFile" accept="video/*">
+            <button class="upload" onclick="uploadVideo()">Upload & Detect</button>
+            <div id="uploadMsg"></div>
+        </div>
 
-<h2>Upload Video</h2>
-<input type="file" id="videoFile">
-<button class="upload" onclick="uploadVideo()">Upload</button>
-<h2 id="uploadMsg"></h2>
+        <hr>
 
-<hr>
+        <!-- Alerts & History -->
+        <button class="alertbtn" onclick="toggleAlerts()">🚨 View Abnormal Events Log</button>
 
-<button class="alertbtn" onclick="toggleAlerts()">🚨 View Alerts</button>
+        <div id="alertPanel">
+            <h3>Caught on Camera</h3>
+            <div id="alertsContainer"></div>
+        </div>
+    </div>
 
-<div id="alertPanel">
-    <h2>Captured Abnormal Events</h2>
-    <div id="alertsContainer"></div>
-</div>
+    <script>
+        const socket = io();
+        let alarmUnlocked = false;
+        const alarm = document.getElementById("alarm");
 
-<hr>
-<a href="/logout">Logout</a>
+        /* Unlock browser audio */
+        document.body.addEventListener("click", () => {
+            if (!alarmUnlocked) {
+                alarm.play().then(() => {
+                    alarm.pause();
+                    alarm.currentTime = 0;
+                    alarmUnlocked = true;
+                    console.log("Audio Ready");
+                }).catch(() => { });
+            }
+        });
 
-<script>
-const socket = io();
-let alarmUnlocked=false;
-const alarm=document.getElementById("alarm");
-
-/* Unlock browser audio */
-document.body.addEventListener("click",()=>{
-    if(!alarmUnlocked){
-        alarm.play().then(()=>{
-            alarm.pause();
-            alarm.currentTime=0;
-            alarmUnlocked=true;
-            console.log("Audio Ready");
-        }).catch(()=>{});
-    }
-});
-
-/* CAMERA CONTROL */
-function startCamera(){
-    socket.emit("start_camera");
-}
-
-function stopCamera(){
-    socket.emit("stop_camera");
-    document.getElementById("video").src="";
-    document.getElementById("status").innerText="Camera Stopped";
-}
-
-/* RECEIVE LIVE FRAME */
-socket.on("frame",function(data){
-    document.getElementById("video").src="data:image/jpeg;base64,"+data;
-});
-
-/* RECEIVE STATUS */
-socket.on("status",function(data){
-    let s=document.getElementById("status");
-
-    if(data.state==="ABNORMAL"){
-        s.innerText="⚠ ABNORMAL DETECTED";
-        s.style.color="red";
-    }else{
-        s.innerText="NORMAL";
-        s.style.color="lime";
-    }
-});
-
-/* PLAY ALARM */
-socket.on("alarm",()=>{
-    if(alarmUnlocked){
-        alarm.currentTime=0;
-        alarm.play();
-    }
-});
-
-/* VIDEO UPLOAD */
-function uploadVideo(){
-    let file=document.getElementById("videoFile").files[0];
-
-    if(!file){
-        alert("Select video first");
-        return;
-    }
-
-    document.getElementById("uploadMsg").innerText="Uploading & Processing...";
-
-    let formData=new FormData();
-    formData.append("file",file);
-
-    fetch("/upload",{method:"POST",body:formData})
-    .then(res=>res.json())
-    .then(data=>{
-        document.getElementById("uploadMsg").innerText=data.msg;
-    });
-}
-
-/* ALERT PANEL */
-function toggleAlerts(){
-    let panel=document.getElementById("alertPanel");
-
-    if(panel.style.display==="none"){
-        panel.style.display="block";
-        loadAlerts();
-    }else{
-        panel.style.display="none";
-    }
-}
-
-function loadAlerts(){
-    fetch("/alerts_list")
-    .then(res=>res.json())
-    .then(images=>{
-        let div=document.getElementById("alertsContainer");
-        div.innerHTML="";
-
-        if(images.length===0){
-            div.innerHTML="<h3>No abnormal events recorded</h3>";
-            return;
+        /* CAMERA CONTROL */
+        function startCamera() {
+            socket.emit("start_camera");
+            document.getElementById("status").innerText = "Connecting...";
+            document.getElementById("status").style.color = "#94a3b8";
         }
 
-        images.forEach(img=>{
-            let image=document.createElement("img");
-            image.src="/frame/"+img+"?t="+new Date().getTime();
-            image.className="alertImg";
-            div.appendChild(image);
-        });
-    });
-}
-</script>
+        function stopCamera() {
+            socket.emit("stop_camera");
+            document.getElementById("video").src = "";
+            document.getElementById("status").innerText = "Camera Stopped";
+            document.getElementById("status").style.color = "#94a3b8";
 
+            // reset border
+            document.getElementById("video").style.border = "2px solid rgba(255, 255, 255, 0.1)";
+            document.getElementById("video").style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.5)";
+        }
+
+        /* RECEIVE LIVE FRAME */
+        socket.on("frame", function (data) {
+            document.getElementById("video").src = "data:image/jpeg;base64," + data;
+        });
+
+        /* RECEIVE STATUS */
+        socket.on("status", function (data) {
+            let s = document.getElementById("status");
+            let v = document.getElementById("video");
+
+            if (data.state === "ABNORMAL") {
+                s.innerText = "⚠ ABNORMAL DETECTED";
+                s.style.color = "#f87171"; // Tailwind red-400
+                s.style.textShadow = "0 0 10px rgba(248, 113, 113, 0.8)";
+
+                v.style.border = "2px solid #ef4444";
+                v.style.boxShadow = "0 0 30px rgba(239, 68, 68, 0.6)";
+
+            } else {
+                s.innerText = "NORMAL";
+                s.style.color = "#4ade80"; // Tailwind green-400
+                s.style.textShadow = "none";
+
+                v.style.border = "2px solid #22c55e";
+                v.style.boxShadow = "0 0 20px rgba(34, 197, 94, 0.2)";
+            }
+        });
+
+        /* PLAY ALARM */
+        socket.on("alarm", () => {
+            if (alarmUnlocked) {
+                alarm.currentTime = 0;
+                alarm.play();
+            }
+        });
+
+        /* VIDEO UPLOAD */
+        function uploadVideo() {
+            let file = document.getElementById("videoFile").files[0];
+
+            if (!file) {
+                alert("Please select a video file first.");
+                return;
+            }
+
+            document.getElementById("uploadMsg").innerText = "Uploading & Processing... Please wait.";
+            document.getElementById("uploadMsg").style.color = "#fbbf24";
+
+            let formData = new FormData();
+            formData.append("file", file);
+
+            fetch("/upload", { method: "POST", body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("uploadMsg").innerText = data.msg;
+                    if (data.msg === "Abnormal detected") {
+                        document.getElementById("uploadMsg").style.color = "#f87171";
+                        // play alarm sound manually if upload returns abnormal since we didn't emit via socketio for uploads except for live
+                        if (alarmUnlocked) {
+                            alarm.currentTime = 0;
+                            alarm.play();
+                        }
+                    } else {
+                        document.getElementById("uploadMsg").style.color = "#4ade80";
+                    }
+                });
+        }
+
+        socket.on("play_alarm", () => {
+            if (alarmUnlocked) {
+                alarm.currentTime = 0;
+                alarm.play();
+            }
+        })
+
+        socket.on("upload_status", (msg) => {
+            document.getElementById("uploadMsg").innerText = msg;
+        })
+
+        /* ALERT PANEL */
+        function toggleAlerts() {
+            let panel = document.getElementById("alertPanel");
+
+            if (panel.style.display === "none" || panel.style.display === "") {
+                panel.style.display = "block";
+                loadAlerts();
+            } else {
+                panel.style.display = "none";
+            }
+        }
+
+        function loadAlerts() {
+            fetch("/alerts_list")
+                .then(res => res.json())
+                .then(images => {
+                    let div = document.getElementById("alertsContainer");
+                    div.innerHTML = "";
+
+                    if (images.length === 0) {
+                        div.innerHTML = "<p style='color: #94a3b8;'>No abnormal events recorded yet.</p>";
+                        return;
+                    }
+
+                    images.forEach(img => {
+                        let image = document.createElement("img");
+                        image.src = "/frame/" + img + "?t=" + new Date().getTime();
+                        image.className = "alertImg";
+                        div.appendChild(image);
+                    });
+                });
+        }
+    </script>
 </body>
+
 </html>
