@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <script>
+        function validateName() {
+            const name = document.getElementById("name").value;
+            const regex = /^[A-Za-z ]+$/;
+
+            if (!regex.test(name)) {
+                alert("Name must contain only alphabets");
+                return false;
+            }
+            return true;
+        }
+    </script>
+</head>
+<body>
+
+<h2>Signup</h2>
+
+<form method="POST" onsubmit="return validateName()">
+
+    Name:<br>
+    <input type="text" id="name" name="name" required><br><br>
+
+    Email:<br>
+    <input type="email" name="email" required><br><br>
+
+    Password:<br>
+    <input type="password" name="password" required><br><br>
+
+    <button type="submit">Register</button>
+
+</form>
+
+<br>
+<a href="/login">Already have account? Login</a>
+
+</body>
+</html>

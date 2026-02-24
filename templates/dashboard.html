@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI CCTV Surveillance</title>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <style>
+        body{
+            background:#0f172a;
+            color:white;
+            text-align:center;
+            font-family:Arial;
+        }
+
+        h2{color:#22c55e}
+
+        #video{
+            width:720px;
+            height:520px;
+            border:5px solid #22c55e;
+            border-radius:10px;
+            margin-top:15px;
+            background:black;
+        }
+
+        button{
+            padding:12px 25px;
+            margin:10px;
+            font-size:18px;
+            border:none;
+            border-radius:8px;
+            cursor:pointer;
+        }
+
+        .start{background:#22c55e;color:black}
+        .stop{background:#ef4444;color:white}
+        .upload{background:#3b82f6;color:white}
+        .alertbtn{background:#f59e0b;color:black}
+
+        #status{
+            font-size:30px;
+            margin-top:15px;
+            font-weight:bold;
+        }
+
+        #uploadMsg{
+            font-size:22px;
+            color:yellow;
+        }
+
+        #alertPanel{
+            background:#020617;
+            padding:20px;
+            border-radius:12px;
+            border:3px solid red;
+            width:90%;
+            margin:auto;
+            margin-top:20px;
+            display:none;
+        }
+
+        .alertImg{
+            width:230px;
+            margin:10px;
+            border:4px solid red;
+            border-radius:10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Welcome {{username}}</h2>
+
+<button class="start" onclick="startCamera()">Start Camera</button>
+<button class="stop" onclick="stopCamera()">Stop Camera</button>
+
+<br>
+<img id="video">
+
+<h1 id="status">Camera OFF</h1>
+
+<audio id="alarm" src="/static/alarm.mp3"></audio>
+
+<hr>
+
+<h2>Upload Video</h2>
+<input type="file" id="videoFile">
+<button class="upload" onclick="uploadVideo()">Upload</button>
+<h2 id="uploadMsg"></h2>
+
+<hr>
+
+<button class="alertbtn" onclick="toggleAlerts()">🚨 View Alerts</button>
+
+<div id="alertPanel">
+    <h2>Captured Abnormal Events</h2>
+    <div id="alertsContainer"></div>
+</div>
+
+<hr>
+<a href="/logout">Logout</a>
+
+<script>
+const socket = io();
+let alarmUnlocked=false;
+const alarm=document.getElementById("alarm");
+
+/* Unlock browser audio */
+document.body.addEventListener("click",()=>{
+    if(!alarmUnlocked){
+        alarm.play().then(()=>{
+            alarm.pause();
+            alarm.currentTime=0;
+            alarmUnlocked=true;
+            console.log("Audio Ready");
+        }).catch(()=>{});
+    }
+});
+
+/* CAMERA CONTROL */
+function startCamera(){
+    socket.emit("start_camera");
+}
+
+function stopCamera(){
+    socket.emit("stop_camera");
+    document.getElementById("video").src="";
+    document.getElementById("status").innerText="Camera Stopped";
+}
+
+/* RECEIVE LIVE FRAME */
+socket.on("frame",function(data){
+    document.getElementById("video").src="data:image/jpeg;base64,"+data;
+});
+
+/* RECEIVE STATUS */
+socket.on("status",function(data){
+    let s=document.getElementById("status");
+
+    if(data.state==="ABNORMAL"){
+        s.innerText="⚠ ABNORMAL DETECTED";
+        s.style.color="red";
+    }else{
+        s.innerText="NORMAL";
+        s.style.color="lime";
+    }
+});
+
+/* PLAY ALARM */
+socket.on("alarm",()=>{
+    if(alarmUnlocked){
+        alarm.currentTime=0;
+        alarm.play();
+    }
+});
+
+/* VIDEO UPLOAD */
+function uploadVideo(){
+    let file=document.getElementById("videoFile").files[0];
+
+    if(!file){
+        alert("Select video first");
+        return;
+    }
+
+    document.getElementById("uploadMsg").innerText="Uploading & Processing...";
+
+    let formData=new FormData();
+    formData.append("file",file);
+
+    fetch("/upload",{method:"POST",body:formData})
+    .then(res=>res.json())
+    .then(data=>{
+        document.getElementById("uploadMsg").innerText=data.msg;
+    });
+}
+
+/* ALERT PANEL */
+function toggleAlerts(){
+    let panel=document.getElementById("alertPanel");
+
+    if(panel.style.display==="none"){
+        panel.style.display="block";
+        loadAlerts();
+    }else{
+        panel.style.display="none";
+    }
+}
+
+function loadAlerts(){
+    fetch("/alerts_list")
+    .then(res=>res.json())
+    .then(images=>{
+        let div=document.getElementById("alertsContainer");
+        div.innerHTML="";
+
+        if(images.length===0){
+            div.innerHTML="<h3>No abnormal events recorded</h3>";
+            return;
+        }
+
+        images.forEach(img=>{
+            let image=document.createElement("img");
+            image.src="/frame/"+img+"?t="+new Date().getTime();
+            image.className="alertImg";
+            div.appendChild(image);
+        });
+    });
+}
+</script>
+
+</body>
+</html>
