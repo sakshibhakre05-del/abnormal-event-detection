@@ -8,7 +8,7 @@ import time
 import base64
 import cv2
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, session, jsonify, send_from_directory
+from flask import Flask, render_template, request, redirect, session, jsonify, send_from_directory, flash
 from flask_socketio import SocketIO
 from werkzeug.utils import secure_filename
 from detection import detect_abnormal
@@ -77,7 +77,8 @@ def register():
         password = request.form['password']
 
         if not valid_username(username):
-            return "Only alphabets allowed"
+            flash("Name must contain only alphabets and spaces.", "error")
+            return redirect('/register')
 
         conn = sqlite3.connect(DB)
         cur = conn.cursor()
@@ -85,7 +86,8 @@ def register():
         cur.execute("SELECT * FROM users WHERE email=?", (email,))
         if cur.fetchone():
             conn.close()
-            return "Email already exists"
+            flash("This email is already registered! Please log in.", "error")
+            return redirect('/register')
 
         cur.execute("INSERT INTO users(username,email,password) VALUES(?,?,?)",
                     (username,email,password))
