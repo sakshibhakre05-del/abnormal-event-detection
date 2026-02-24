@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,7 +21,8 @@
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.05); /* slightly opaque white */
+            background: rgba(255, 255, 255, 0.05);
+            /* slightly opaque white */
             border-radius: 16px;
             padding: 40px;
             width: 100%;
@@ -92,7 +94,7 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4);
         }
-        
+
         button:active {
             transform: translateY(0);
         }
@@ -114,6 +116,91 @@
             color: #bae6fd;
             text-decoration: underline;
         }
+
+        /* ---------------- TOAST NOTIFICATIONS (WAVE ANIMATION) ---------------- */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(153, 27, 27, 0.9));
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            /* Creative Wave Animation */
+            transform-origin: right center;
+            animation: waveSlideIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, fadeOut 0.5s ease-in 4.5s forwards;
+            opacity: 0;
+        }
+
+        @keyframes waveSlideIn {
+            0% {
+                transform: translateX(100%) scaleX(0.5);
+                opacity: 0;
+            }
+
+            50% {
+                transform: translateX(-5%) scaleX(1.1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(0) scaleX(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-20px);
+                display: none;
+            }
+        }
+
+        .toast-icon {
+            font-size: 20px;
+            animation: waveBounce 2s infinite;
+        }
+
+        @keyframes waveBounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            40% {
+                transform: translateY(-8px) rotate(-15deg);
+            }
+
+            60% {
+                transform: translateY(-4px) rotate(10deg);
+            }
+        }
     </style>
     <script>
         function validateName() {
@@ -128,34 +215,50 @@
         }
     </script>
 </head>
+
 <body>
 
-<div class="container">
-    <h2>Create Account</h2>
-
-    <form method="POST" onsubmit="return validateName()">
-        <div class="form-group">
-            <label for="name">Full Name</label>
-            <input type="text" id="name" name="name" required placeholder="Enter your full name">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(category_filter=["error"]) %}
+    {% if messages %}
+    <div class="toast-container">
+        {% for message in messages %}
+        <div class="toast">
+            <div class="toast-icon">🌊</div>
+            <div class="toast-message">{{ message }}</div>
         </div>
-
-        <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" required placeholder="you@example.com">
-        </div>
-
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required placeholder="Create a strong password">
-        </div>
-
-        <button type="submit">Register</button>
-    </form>
-
-    <div class="footer">
-        <a href="/login">Already have an account? Log in here</a>
+        {% endfor %}
     </div>
-</div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="container">
+        <h2>Create Account</h2>
+
+        <form method="POST" onsubmit="return validateName()">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required placeholder="Enter your full name">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required placeholder="you@example.com">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="Create a strong password">
+            </div>
+
+            <button type="submit">Register</button>
+        </form>
+
+        <div class="footer">
+            <a href="/login">Already have an account? Log in here</a>
+        </div>
+    </div>
 
 </body>
+
 </html>
