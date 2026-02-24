@@ -21,13 +21,17 @@ cap = None
 # -------------------- APP --------------------
 app = Flask(__name__)
 app.secret_key = "secret123"
+app.config["TEMPLATES_AUTO_RELOAD"] = True
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 
 # -------------------- PATHS --------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-UPLOAD_FOLDER = os.path.join(BASE_DIR, "static/uploads")
-FRAME_FOLDER = os.path.join(BASE_DIR, "static/frames")
+# Use a persistent storage path if deployed, otherwise fallback to local BASE_DIR
+STORAGE_BASE = os.environ.get('STORAGE_PATH', BASE_DIR)
+
+UPLOAD_FOLDER = os.path.join(STORAGE_BASE, "static/uploads")
+FRAME_FOLDER = os.path.join(STORAGE_BASE, "static/frames")
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(FRAME_FOLDER, exist_ok=True)
@@ -36,7 +40,7 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["FRAME_FOLDER"] = FRAME_FOLDER
 
 # -------------------- DATABASE --------------------
-DB = "users.db"
+DB = os.path.join(STORAGE_BASE, "users.db")
 
 def init_db():
     conn = sqlite3.connect(DB)
@@ -62,7 +66,7 @@ def valid_username(name):
 def home():
     if 'user' in session:
         return redirect('/dashboard')
-    return redirect('/login')
+    return render_template('index.html')
 
 @app.route('/register', methods=['GET','POST'])
 def register():
